@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::net::SocketAddr;
+use std::process::{Command, Output};
 use axum::http::{StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::{body, Form, Json, Router};
@@ -41,14 +42,70 @@ async fn serve_terminal() -> impl IntoResponse {
 }
 
 #[derive(Deserialize, Debug)]
-struct FormUpdateData {
-    node_id: i32,
+struct FormData {
+    node_ip: String,
     port: i32,
     baud_rate: i32,
 }
 
-async fn update_terminal(Form(form_data): Form<FormUpdateData>) -> impl IntoResponse {
+async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
     println!("form data: {:?}", form_data);
+    //init the terminal
+    init_terminal(&form_data)
+        .expect("Error creating terminal - todo - error handling");
 
     StatusCode::OK
+}
+
+///Flow is:
+///     1. Kill old tmux instances
+///     2. Create Tmux container
+///     3. Attach Tmux container
+///     4. Start ttyd on specified port
+///     5. start minicom connection to device with baud_rate
+/// Tmux containers names are the ip addresses
+fn init_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
+    fn kill_old_tmux() -> std::io::Result<Output> {
+        Command::new("tmux")
+            .arg("kill-server")
+            .output()
+    }
+
+    fn create_tmux(node_ip: &String) -> std::io::Result<Output> {
+        Command::new("tmux")
+            .args(["new", "-s"])
+            .arg(node_ip)
+            .output()
+    }
+
+    fn attach_tmux(node_ip: &String) -> std::io::Result<Output> {
+        Command::new("tmux")
+            .args(["attach", "-t"])
+            .arg(node_ip)
+            .output()
+    }
+
+    fn open_ttyd(port: i32) -> std::io::Result<Output> {
+        Command::new("ttyd")
+            .arg("-p")
+            .arg(port.to_string())
+            .arg("bash")
+            .output()
+    }
+
+    fn start_minicom(baud_rate: i32) -> std::io::Result<Output> {
+        Command::new("minicom")
+            .arg("-b")
+            .arg(baud_rate.to_string())
+            .args(["-D", "/dev/ttyUSB0"])
+            .output()
+    }
+
+    kill_old_tmux().expect("Error killing tmux");
+    create_tmux(&form.node_ip).expect("Error creating tmux session");
+    attach_tmux(&form.node_ip).expect("Error attatching tmux session");
+    open_ttyd(form.port).expect("Error opening ttyd server");
+    start_minicom(form.baud_rate).expect("Error starting minicom");
+
+    Ok(())
 }
