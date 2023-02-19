@@ -6,3 +6,4 @@ via browser.
 # dependencies
 - Requires [ttyd](https://github.com/tsl0922/ttyd) to be installed
 - Requires node
+- Requires cargo

@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::process::{Command, Output};
 use axum::http::{StatusCode};
 use axum::response::{Html, IntoResponse, Response};
-use axum::{body, Form, Json, Router};
+use axum::{body, Form, Router};
 use axum::body::Full;
 use axum::routing::{get, post};
 pub use serde::{Deserialize, Serialize};
@@ -51,7 +51,7 @@ struct FormData {
 async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
     println!("form data: {:?}", form_data);
     //init the terminal
-    init_terminal(&form_data)
+    init_web_terminal(&form_data)
         .expect("Error creating terminal - todo - error handling");
 
     StatusCode::OK
@@ -62,37 +62,8 @@ async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
 ///     2. Create Tmux container
 ///     3. Attach Tmux container
 ///     4. Start ttyd on specified port
-///     5. start minicom connection to device with baud_rate
-/// Tmux containers names are the ip addresses
-fn init_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
-    fn kill_old_tmux() -> std::io::Result<Output> {
-        Command::new("tmux")
-            .arg("kill-server")
-            .output()
-    }
-
-    fn create_tmux(node_ip: &String) -> std::io::Result<Output> {
-        Command::new("tmux")
-            .args(["new", "-s"])
-            .arg(node_ip)
-            .output()
-    }
-
-    fn attach_tmux(node_ip: &String) -> std::io::Result<Output> {
-        Command::new("tmux")
-            .args(["attach", "-t"])
-            .arg(node_ip)
-            .output()
-    }
-
-    fn open_ttyd(port: i32) -> std::io::Result<Output> {
-        Command::new("ttyd")
-            .arg("-p")
-            .arg(port.to_string())
-            .arg("bash")
-            .output()
-    }
-
+/// Tmux containers names are the ip addresses with dots removed
+fn init_web_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
     fn start_minicom(baud_rate: i32) -> std::io::Result<Output> {
         Command::new("minicom")
             .arg("-b")
@@ -101,11 +72,21 @@ fn init_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
             .output()
     }
 
-    kill_old_tmux().expect("Error killing tmux");
-    create_tmux(&form.node_ip).expect("Error creating tmux session");
-    attach_tmux(&form.node_ip).expect("Error attatching tmux session");
-    open_ttyd(form.port).expect("Error opening ttyd server");
-    start_minicom(form.baud_rate).expect("Error starting minicom");
+    fn start_tmux(node_id: &String, port: i32, baud_rate: i32) -> std::io::Result<Output> {
+        Command::new("python3")
+            .arg("./backend/python_scripts/tmux_init.py")
+            .arg(node_id)
+            .arg(port.to_string())
+            .arg(baud_rate.to_string())
+            .output()
+    }
+
+
+    let ip_without_dots = &form.node_ip.clone().replace(".", "");
+
+    let _ = start_tmux(ip_without_dots, form.port, form.baud_rate)
+        .expect("Error running python script for init of tmux and ttyd");
+
 
     Ok(())
 }
