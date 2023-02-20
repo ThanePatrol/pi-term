@@ -25,9 +25,12 @@ baud_rate = str(args[3])
 create_tmux_command = 'tmux new -s ' + node_name + " -d"
 subprocess.run(create_tmux_command, shell=True)
 
+# todo update syntax to "ttyd -p 3002 tmux new -A -s ttyd" to start a reattachable ttyd session
+
 # send keys to tmux session to open ttyd
 open_ttyd_cmd = 'tmux send-keys -t ' + node_name + ' "ttyd -p ' + port + ' bash"' + ' C-m'
-subprocess.run(open_ttyd_cmd, shell=True)
+open_ttyd_cmd2 = "ttyd tmux new -A -s ttyd vim"
+subprocess.run(open_ttyd_cmd2, shell=True)
 
-#minicom_start = 'minicom -b ' + baud_rate + ' -D /dev/ttyUSB0'
-#subprocess.run(minicom_start, shell=True)
+# minicom_start = 'minicom -b ' + baud_rate + ' -D /dev/ttyUSB0'
+# subprocess.run(minicom_start, shell=True)

@@ -1,15 +1,18 @@
-use std::error::Error;
-use std::net::SocketAddr;
-use std::process::{Command, Output};
-use axum::http::{StatusCode};
-use axum::response::{Html, IntoResponse, Response};
-use axum::{body, Form, Router};
 use axum::body::Full;
+use axum::http::StatusCode;
+use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
+use axum::{body, Form, Router};
+use reqwest::blocking;
+use reqwest::{Client, Url};
 pub use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::net::{Ipv4Addr, SocketAddr};
+use std::process::{Command, Output};
+use thirtyfour::prelude::*;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>>{
+async fn main() -> Result<(), Box<dyn Error>> {
     //init environment variables
     dotenvy::from_path(".env").unwrap();
 
@@ -26,7 +29,7 @@ fn build_routes() -> Router {
     Router::new()
         .route("/", get(|| async { "Hello world!" }))
         .route("/terminal", get(serve_terminal))
-        .route("/choose_terminal",post(update_terminal))
+        .route("/choose_terminal", post(update_terminal))
 }
 
 async fn serve_terminal() -> impl IntoResponse {
@@ -43,17 +46,20 @@ async fn serve_terminal() -> impl IntoResponse {
 
 #[derive(Deserialize, Debug)]
 struct FormData {
-    node_ip: String,
+    node_ip: Ipv4Addr,
     port: i32,
     baud_rate: i32,
+    user: String,
 }
 
 async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
     println!("form data: {:?}", form_data);
     //init the terminal
-    init_web_terminal(&form_data)
-        .expect("Error creating terminal - todo - error handling");
+    init_web_terminal(&form_data).expect("Error creating terminal - todo - error handling");
 
+    start_ssh_session_in_ttyd(&form_data.node_ip, form_data.port, &form_data.user)
+        .await
+        .unwrap();
     StatusCode::OK
 }
 
@@ -81,12 +87,31 @@ fn init_web_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
             .output()
     }
 
-
-    let ip_without_dots = &form.node_ip.clone().replace(".", "");
+    let ip_without_dots = &form.node_ip.clone().to_string().replace(".", "");
 
     let _ = start_tmux(ip_without_dots, form.port, form.baud_rate)
         .expect("Error running python script for init of tmux and ttyd");
 
+    Ok(())
+}
+
+async fn start_ssh_session_in_ttyd(
+    node_ip: &Ipv4Addr,
+    port: i32,
+    user: &String,
+) -> Result<(), Box<dyn Error>> {
+    let url_string = "http://127.0.0.1:".to_string() + &*port.to_string();
+
+    println!("making driver");
+    Command::new("python3")
+        .arg("./backend/python_scripts/ssh_init.py")
+        .arg(&url_string)
+        .arg(user)
+        .arg(node_ip.to_string())
+        .output()
+        .unwrap();
+
+    println!("driver ,ade");
 
     Ok(())
 }
