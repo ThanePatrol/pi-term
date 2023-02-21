@@ -3,13 +3,11 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{body, Form, Router};
-use reqwest::blocking;
 use reqwest::{Client, Url};
 pub use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::process::{Command, Output};
-use thirtyfour::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -70,17 +68,9 @@ async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
 ///     4. Start ttyd on specified port
 /// Tmux containers names are the ip addresses with dots removed
 fn init_web_terminal(form: &FormData) -> Result<(), Box<dyn Error>> {
-    fn start_minicom(baud_rate: i32) -> std::io::Result<Output> {
-        Command::new("minicom")
-            .arg("-b")
-            .arg(baud_rate.to_string())
-            .args(["-D", "/dev/ttyUSB0"])
-            .output()
-    }
-
     fn start_tmux(node_id: &String, port: i32, baud_rate: i32) -> std::io::Result<Output> {
         Command::new("python3")
-            .arg("./backend/python_scripts/tmux_init.py")
+            .arg("./frontend/python_scripts/tmux_init.py")
             .arg(node_id)
             .arg(port.to_string())
             .arg(baud_rate.to_string())
@@ -102,16 +92,15 @@ async fn start_ssh_session_in_ttyd(
 ) -> Result<(), Box<dyn Error>> {
     let url_string = "http://127.0.0.1:".to_string() + &*port.to_string();
 
-    println!("making driver");
-    Command::new("python3")
-        .arg("./backend/python_scripts/ssh_init.py")
+    let output = Command::new("python3")
+        .arg("./frontend/python_scripts/ssh_init.py")
         .arg(&url_string)
         .arg(user)
         .arg(node_ip.to_string())
         .output()
         .unwrap();
 
-    println!("driver ,ade");
+    println!("{:?}", output);
 
     Ok(())
 }

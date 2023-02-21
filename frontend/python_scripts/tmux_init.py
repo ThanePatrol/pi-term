@@ -14,23 +14,23 @@
 
 import subprocess
 import sys
-import time
 
 args = sys.argv
 node_ip = str(args[1])
-node_name = 'node-' + node_ip
+node_id = node_ip.replace(".", "")
+node_name = 'node-' + node_id
 port = str(args[2])
-baud_rate = str(args[3])
+
+# change it to kill the server associated with the node, not the entire server
+kill_tmux = "tmux kill-server"
+subprocess.run(kill_tmux, shell=True)
 
 create_tmux_command = 'tmux new -s ' + node_name + " -d"
 subprocess.run(create_tmux_command, shell=True)
 
-# todo update syntax to "ttyd -p 3002 tmux new -A -s ttyd" to start a reattachable ttyd session
-
 # send keys to tmux session to open ttyd
-open_ttyd_cmd = 'tmux send-keys -t ' + node_name + ' "ttyd -p ' + port + ' bash"' + ' C-m'
-open_ttyd_cmd2 = "ttyd tmux new -A -s ttyd vim"
-subprocess.run(open_ttyd_cmd2, shell=True)
+open_ttyd_cmd = 'tmux send-keys -t ' + node_name + ' "ttyd -p ' + port + ' tmux new -A -s ttyd bash" C-m'
+subprocess.run(open_ttyd_cmd, shell=True)
 
 # minicom_start = 'minicom -b ' + baud_rate + ' -D /dev/ttyUSB0'
 # subprocess.run(minicom_start, shell=True)

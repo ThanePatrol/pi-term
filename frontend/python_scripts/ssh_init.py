@@ -16,7 +16,7 @@ url = args[1]
 user = args[2]
 node_ip = args[3]
 
-driver = webdriver.Firefox()
+driver = webdriver.Chrome("/home/hugh/.local/bin/chromedriver")
 driver.get(url)
 
 text_area = driver.find_element(By.CLASS_NAME, "xterm-helper-textarea")
@@ -24,5 +24,9 @@ text_area = driver.find_element(By.CLASS_NAME, "xterm-helper-textarea")
 ssh_cmd = "ssh " + user + "@" + node_ip
 text_area.send_keys(ssh_cmd)
 text_area.send_keys(Keys.ENTER)
+time.sleep(0.5)
+text_area = driver.find_element(By.CLASS_NAME, "xterm-helper-textarea")
+text_area.send_keys("pi")
+text_area.send_keys(Keys.ENTER)
 
-time.sleep(300)
+driver.quit()
