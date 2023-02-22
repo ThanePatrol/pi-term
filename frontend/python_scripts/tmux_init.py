@@ -22,8 +22,8 @@ node_name = 'node-' + node_id
 port = str(args[2])
 
 # change it to kill the server associated with the node, not the entire server
-kill_tmux = "tmux kill-server"
-subprocess.run(kill_tmux, shell=True)
+#kill_tmux = "tmux kill-server"
+#subprocess.run(kill_tmux, shell=True)
 
 create_tmux_command = 'tmux new -s ' + node_name + " -d"
 subprocess.run(create_tmux_command, shell=True)

@@ -3,6 +3,7 @@
 const formSubmitButton = document.getElementById("form-submit-button");
 
 formSubmitButton.addEventListener('click', function (event) {
+    console.log("form submitted")
     event.preventDefault();
     const request = new XMLHttpRequest();
     const form = document.getElementById('choose-terminal-form');
