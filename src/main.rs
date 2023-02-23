@@ -1,13 +1,13 @@
-use axum::body::Full;
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Response};
-use axum::routing::{get, post};
-use axum::{body, Form, Router};
-use reqwest::{Client, Url};
+use axum::response::{IntoResponse};
+use axum::routing::{get, get_service, post};
+use axum::{Form, Router};
 pub use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::process::{Command, Output};
+use tokio::io;
+use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -24,12 +24,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn build_routes() -> Router {
+    let serve_dir = get_service(ServeDir::new("assets")).handle_error(handle_error);
+
     Router::new()
-        .route("/", get(|| async { "Hello world!" }))
-        .route("/terminal", get(serve_terminal))
+        .nest_service("/assets", serve_dir.clone())
+        .fallback_service(serve_dir)
         .route("/choose_terminal", post(update_terminal))
 }
-
+/*
 async fn serve_terminal() -> impl IntoResponse {
     let path = dotenvy::var("TERMINAL_FILE").unwrap();
 
@@ -41,6 +43,8 @@ async fn serve_terminal() -> impl IntoResponse {
             .unwrap(),
     }
 }
+
+ */
 
 #[derive(Deserialize, Debug)]
 struct FormData {
@@ -57,7 +61,8 @@ async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
     //let port = form_data.port.parse::<i32>().unwrap();
     //let baud_rate = form_data.baud_rate.parse::<i32>().unwrap();
     //init the terminal
-    init_web_terminal(&form_data.node_ip, form_data.port, form_data.baud_rate).expect("Error creating terminal - todo - error handling");
+    init_web_terminal(&form_data.node_ip, form_data.port, form_data.baud_rate)
+        .expect("Error creating terminal - todo - error handling");
 
     start_ssh_session_in_ttyd(&form_data.node_ip, form_data.port, &form_data.user)
         .await
@@ -107,4 +112,8 @@ async fn start_ssh_session_in_ttyd(
     println!("{:?}", output);
 
     Ok(())
+}
+
+async fn handle_error(_err: io::Error) -> impl IntoResponse {
+    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
 }

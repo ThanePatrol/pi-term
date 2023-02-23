@@ -18,7 +18,7 @@ import sys
 args = sys.argv
 node_ip = str(args[1])
 node_id = node_ip.replace(".", "")
-node_name = 'node-' + node_id
+node_name = node_id
 port = str(args[2])
 
 # change it to kill the server associated with the node, not the entire server
