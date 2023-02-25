@@ -7,7 +7,6 @@
     3. Start ttyd on specified port
 
 
-    NB: minicom will need to have Hardware Flow Control set to No for this to work
 """
 
 import subprocess
@@ -30,5 +29,3 @@ subprocess.run(create_tmux_command, shell=True)
 open_ttyd_cmd = 'tmux send-keys -t process-spawner "ttyd -p ' + port + ' tmux new -A -s ' + node_name + ' bash" C-m'
 subprocess.run(open_ttyd_cmd, shell=True)
 
-# minicom_start = 'minicom -b ' + baud_rate + ' -D /dev/ttyUSB0'
-# subprocess.run(minicom_start, shell=True)

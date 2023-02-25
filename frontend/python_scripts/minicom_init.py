@@ -4,6 +4,9 @@
     Expects the script location, ttyd url, /dev/path, baud rate and webdriver path as parameters
     in that order
     Goes to ttyd page, starts minicom session
+
+    NB: minicom will need to have Hardware Flow Control set to No for this to work
+
 """
 import sys
 import time
