@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-    Expects the script location, ttyd url and node username and node_ip as parameters
-    in that order
+    Expects the script location, ttyd url and node username, node_ip and web driver path
+    as parameters, in that order
     Goes to ttyd page, starts ssh session
 """
 import sys
@@ -15,8 +15,9 @@ args = sys.argv
 url = args[1]
 user = args[2]
 node_ip = args[3]
+driver_path = args[4]
 
-driver = webdriver.Chrome("/home/hugh/.local/bin/chromedriver")
+driver = webdriver.Chrome(driver_path)
 driver.get(url)
 
 text_area = driver.find_element(By.CLASS_NAME, "xterm-helper-textarea")
