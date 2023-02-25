@@ -3,10 +3,8 @@
     Expects the script location, ip of the node, port number
     and baud_rate as parameters in that order
     Flow is:
-    1. Create Tmux container
-    2. Attach Tmux container
+    1. Create Tmux container in detached mode
     3. Start ttyd on specified port
-    4. start minicom connection to device with baud_rate
 
 
     NB: minicom will need to have Hardware Flow Control set to No for this to work

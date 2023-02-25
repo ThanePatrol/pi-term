@@ -61,7 +61,7 @@ async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
     //let port = form_data.port.parse::<i32>().unwrap();
     //let baud_rate = form_data.baud_rate.parse::<i32>().unwrap();
     //init the terminal
-    init_web_terminal(&form_data.node_ip, form_data.port, form_data.baud_rate)
+    init_new_web_terminal(&form_data.node_ip, form_data.port, form_data.baud_rate)
         .expect("Error creating terminal - todo - error handling");
 
     start_ssh_session_in_ttyd(&form_data.node_ip, form_data.port, &form_data.user)
@@ -76,19 +76,18 @@ async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
 ///     3. Attach Tmux container
 ///     4. Start ttyd on specified port
 /// Tmux containers names are the ip addresses with dots removed
-fn init_web_terminal(node_ip: &Ipv4Addr, port: i32, baud_rate: i32) -> Result<(), Box<dyn Error>> {
-    fn start_tmux(node_id: &String, port: i32, baud_rate: i32) -> std::io::Result<Output> {
+fn init_new_web_terminal(node_ip: &Ipv4Addr, port: i32, baud_rate: i32) -> Result<(), Box<dyn Error>> {
+    fn start_tmux(node_id: &String, port: i32) -> std::io::Result<Output> {
         Command::new("python3")
             .arg("./frontend/python_scripts/tmux_init.py")
             .arg(node_id)
             .arg(port.to_string())
-            .arg(baud_rate.to_string())
             .output()
     }
 
     let ip_without_dots = &node_ip.clone().to_string().replace(".", "");
 
-    let _ = start_tmux(ip_without_dots, port, baud_rate)
+    let _ = start_tmux(ip_without_dots, port)
         .expect("Error running python script for init of tmux and ttyd");
 
     Ok(())
@@ -106,6 +105,7 @@ async fn start_ssh_session_in_ttyd(
         .arg(&url_string)
         .arg(user)
         .arg(node_ip.to_string())
+        .arg("/home/hugh/.local/bin/chromedriver")
         .output()
         .unwrap();
 
