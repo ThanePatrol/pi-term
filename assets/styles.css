@@ -79,7 +79,30 @@ main {
     margin: 0 1.5rem;
 }
 
+#choose-terminal-form {
+    max-width: 40%;
+    display: grid;
+    grid-template-columns: repeat(2, 0.5fr);
+    grid-gap: 0.5rem;
+    align-items: center;
+}
 
+
+.form-label {
+    font-size: 10px;
+    opacity: 0;
+    transition: var(--transition-speed);
+}
+
+.form-group:hover .form-label {
+    display: block;
+    opacity: 1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
 
 
 

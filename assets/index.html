@@ -76,6 +76,9 @@
     </nav>
     <main>
         <h1>Welcome to my webpage</h1>
+        <div class="">
+
+        </div>
         <p>I'm baby hella heirloom praxis copper mug try-hard fanny pack yuccie blog fit photo booth swag. Gochujang vegan same flannel readymade. Ascot microdosing crucifix marfa, master cleanse seitan adaptogen activated charcoal photo booth swag. Pickled four dollar toast bruh sriracha try-hard actually tilde.
 
             Pickled iceland shoreditch hammock tumeric vaporware art party. Pug man bun quinoa tonx green juice four loko. Kogi street art dreamcatcher leggings salvia photo booth. Hammock chillwave 90's roof party paleo, literally small batch green juice normcore synth vibecession four loko viral. Actually intelligentsia la croix four loko. Taiyaki roof party air plant cold-pressed, banh mi gatekeep PBR&B yes plz kogi kale chips chicharrones gastropub man bun fit. Chartreuse adaptogen sriracha cloud bread.
@@ -84,17 +87,27 @@
             Dummy text? More like dummy thicc text, amirite?</p>
         <iframe src="http://" style="width:100%;height:400px;" id="terminal-iframe"></iframe>
         <form action="/add_terminal" method="POST" id="choose-terminal-form">
-            <label for="node_ip">Enter node IP address</label>
-            <input type="text" id="node_ip" name="node_ip">
-            <label for="port">Enter port</label>
-            <input type="text" id="port" name="port">
-            <label for="baud_rate">Enter Baud Rate</label>
-            <input type="text" id="baud_rate" name="baud_rate">
-            <label for="user">Enter user</label>
-            <input type="text" id="user" name="user">
-            <label for="tty_path">Enter tty device path</label>
-            <input type="text" id="tty_path" name="tty_path">
-            <input type="submit" value="Submit" id="form-submit-button">
+            <div class="node-ip form-group">
+                <label class="form-label" for="node_ip">The IPV4 address of the computer you want to connect to</label>
+                <input type="text" placeholder="IP Address" id="node_ip" name="node_ip" aria-required="true">
+            </div>
+            <div class="node-port form-group">
+                <label class="form-label" for="port">An unused port on the device running this webpage</label>
+                <input type="text" placeholder="Port" id="port" name="port" aria-required="true">
+            </div>
+            <div class="node-baud form-group">
+                <label class="form-label" for="baud_rate">The Baud rate for the device you want connect</label>
+                <input type="text" placeholder="Baud rate" id="baud_rate" name="baud_rate" aria-required="true">
+            </div>
+            <div class="node-user form-group">
+                <label class="form-label" for="user">The username of the computer you want to connect to</label>
+                <input type="text" placeholder="Username" id="user" name="user" aria-required="true">
+            </div>
+            <div class="tty-path form-group">
+                <label class="form-label" for="tty_path">The tty device path used to access the device, eg: `/dev/ttyX`</label>
+                <input type="text" placeholder="TTY device path" id="tty_path" name="tty_path" aria-required="true">
+            </div>
+            <input type="submit" value="Save" id="form-submit-button">
         </form>
     </main>
 </body>
