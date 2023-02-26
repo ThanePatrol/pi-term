@@ -1,5 +1,6 @@
 const form = document.querySelector("#choose-terminal-form");
 
+
 form.addEventListener('submit', event => {
     console.log("form submitted");
     event.preventDefault();
@@ -12,7 +13,7 @@ form.addEventListener('submit', event => {
         urlSearchParams.append(pair[0], pair[1]);
     }
 
-    fetch('/choose_terminal', {
+    fetch('/add_terminal', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -20,7 +21,7 @@ form.addEventListener('submit', event => {
         body: urlSearchParams.toString()
     })
         .then(response => {
-            response.json();
+            response.json().then(r => console.log(r));
         })
         .catch(error => {
             console.error(error);

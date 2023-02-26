@@ -42,9 +42,9 @@ pub fn init_tmux_session(node_name: &String, port: i32) -> Result<Output, std::i
 pub fn init_new_web_terminal(node_ip: &Ipv4Addr, port: i32) -> Result<(), Box<dyn Error>> {
     let ip_without_dots = &node_ip.clone().to_string().replace(".", "");
 
-    let output = init_tmux_session(ip_without_dots, port)
+    let _ = init_tmux_session(ip_without_dots, port)
         .expect("Error executing new tmux cmd");
-    println!("output was {:?}", output);
+    //println!("output was {:?}", output);
 
     Ok(())
 }
@@ -56,7 +56,7 @@ pub fn start_ssh_session_in_ttyd(
 ) -> Result<(), Box<dyn Error>> {
     let url_string = "http://127.0.0.1:".to_string() + &*port.to_string();
 
-    let output = Command::new("python3")
+    let _ = Command::new("python3")
         .arg("./resources/python_scripts/ssh_init.py")
         .arg(&url_string)
         .arg(user)
@@ -65,7 +65,7 @@ pub fn start_ssh_session_in_ttyd(
         .output()
         .unwrap();
 
-    println!("{:?}", output);
+    //println!("{:?}", output);
 
     Ok(())
 }
