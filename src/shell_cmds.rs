@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::net::Ipv4Addr;
 use std::process::{Command, Output};
 
@@ -36,4 +37,35 @@ pub fn init_tmux_session(node_name: &String, port: i32) -> Result<Output, std::i
     let cmd = build_ttyd_cmd(&node_name, port);
     println!("command is: {cmd}");
     init_ttyd(&cmd)
+}
+
+pub fn init_new_web_terminal(node_ip: &Ipv4Addr, port: i32) -> Result<(), Box<dyn Error>> {
+    let ip_without_dots = &node_ip.clone().to_string().replace(".", "");
+
+    let output = init_tmux_session(ip_without_dots, port)
+        .expect("Error executing new tmux cmd");
+    println!("output was {:?}", output);
+
+    Ok(())
+}
+
+pub fn start_ssh_session_in_ttyd(
+    node_ip: &Ipv4Addr,
+    port: i32,
+    user: &String,
+) -> Result<(), Box<dyn Error>> {
+    let url_string = "http://127.0.0.1:".to_string() + &*port.to_string();
+
+    let output = Command::new("python3")
+        .arg("./resources/python_scripts/ssh_init.py")
+        .arg(&url_string)
+        .arg(user)
+        .arg(node_ip.to_string())
+        .arg("/home/hugh/.local/bin/chromedriver")
+        .output()
+        .unwrap();
+
+    println!("{:?}", output);
+
+    Ok(())
 }

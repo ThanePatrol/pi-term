@@ -1,15 +1,11 @@
+mod db;
+mod router;
 mod shell_cmds;
 
-use axum::http::StatusCode;
-use axum::response::{IntoResponse};
-use axum::routing::{get, get_service, post};
-use axum::{Form, Router};
+use crate::router::{build_routes, handle_error, update_terminal};
 pub use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddr};
-use std::process::{Command, Output};
-use tokio::io;
-use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -25,90 +21,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn build_routes() -> Router {
-    let serve_dir = get_service(ServeDir::new("assets")).handle_error(handle_error);
 
-    Router::new()
-        .nest_service("/assets", serve_dir.clone())
-        .fallback_service(serve_dir)
-        .route("/choose_terminal", post(update_terminal))
-}
-/*
-async fn serve_terminal() -> impl IntoResponse {
-    let path = dotenvy::var("TERMINAL_FILE").unwrap();
-
-    match std::fs::read_to_string(&path) {
-        Ok(file) => Html::from(file).into_response(),
-        Err(e) => Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body(body::boxed(Full::from(e.to_string())))
-            .unwrap(),
-    }
-}
-
- */
 
 #[derive(Deserialize, Debug)]
-struct FormData {
+pub struct DeviceData {
     node_ip: Ipv4Addr,
     port: i32,
     baud_rate: i32,
     user: String,
-}
-
-async fn update_terminal(Form(form_data): Form<FormData>) -> impl IntoResponse {
-    println!("form data: {:?}", form_data);
-
-    //let ip = form_data.node_ip.parse::<Ipv4Addr>().unwrap();
-    //let port = form_data.port.parse::<i32>().unwrap();
-    //let baud_rate = form_data.baud_rate.parse::<i32>().unwrap();
-    //init the terminal
-    init_new_web_terminal(&form_data.node_ip, form_data.port)
-        .expect("Error creating terminal - todo - error handling");
-
-    start_ssh_session_in_ttyd(&form_data.node_ip, form_data.port, &form_data.user)
-        .await
-        .unwrap();
-    StatusCode::OK
-}
-
-///Flow is:
-///     1. Kill old tmux instances
-///     2. Create Tmux container
-///     3. Attach Tmux container
-///     4. Start ttyd on specified port
-/// Tmux containers names are the ip addresses with dots removed
-fn init_new_web_terminal(node_ip: &Ipv4Addr, port: i32) -> Result<(), Box<dyn Error>> {
-    let ip_without_dots = &node_ip.clone().to_string().replace(".", "");
-
-    let output = shell_cmds::init_tmux_session(ip_without_dots, port)
-        .expect("Error executing new tmux cmd");
-    println!("output was {:?}", output);
-
-    Ok(())
-}
-
-async fn start_ssh_session_in_ttyd(
-    node_ip: &Ipv4Addr,
-    port: i32,
-    user: &String,
-) -> Result<(), Box<dyn Error>> {
-    let url_string = "http://127.0.0.1:".to_string() + &*port.to_string();
-
-    let output = Command::new("python3")
-        .arg("./frontend/python_scripts/ssh_init.py")
-        .arg(&url_string)
-        .arg(user)
-        .arg(node_ip.to_string())
-        .arg("/home/hugh/.local/bin/chromedriver")
-        .output()
-        .unwrap();
-
-    println!("{:?}", output);
-
-    Ok(())
-}
-
-async fn handle_error(_err: io::Error) -> impl IntoResponse {
-    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
+    tty_path: String,
 }
