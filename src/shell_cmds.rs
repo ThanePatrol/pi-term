@@ -69,3 +69,5 @@ pub fn start_ssh_session_in_ttyd(
 
     Ok(())
 }
+
+pub fn start_minicom_session()

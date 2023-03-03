@@ -7,3 +7,6 @@ via browser.
 - Requires [ttyd](https://github.com/tsl0922/ttyd) to be installed
 - Requires node
 - Requires cargo
+
+# todo
+See [trello board](https://trello.com/b/2wX3hz5w/pi-term)
