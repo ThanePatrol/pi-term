@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     //init environment variables
     dotenvy::from_path(".env").unwrap();
 
-    let pool = db::init_db("/home/hugh/IdeaProjects/pi-term/resources/data.db".to_string()).await?;
+    let pool = db::init_db("./resources/data.db".to_string()).await?;
 
     let address = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", address);
